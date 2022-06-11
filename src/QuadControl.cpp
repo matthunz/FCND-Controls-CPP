@@ -69,10 +69,10 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
 	// You'll need the arm length parameter L, and the drag/thrust ratio kappa
 
 	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-	
+
 	// 1. Calculate the perpendicular distance to axes [m].
 	float l = L / sqrtf(2.f);
-	
+
 	// 2. Calculate the commanded angular acceleration [m/s^2]
 	float t1 = momentCmd.x / l;
 	float t2 = momentCmd.y / l;
@@ -170,7 +170,26 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 
 	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
+	// 1. Set bz to the vertical component of the attitude rotation matrix
+	float bz = R(2, 2);
 
+	// 2. Calculate the error in position and add it to the integration
+	float posError = posZCmd - posZ;
+	integratedAltitudeError += posError * dt;
+
+	// 3. Calculate the error in velocity
+	float velError = velZCmd - velZ;
+
+	// 4. Calculate output from the PID control
+	float ulBar = kpPosZ * posError + kpVelZ * velError + KiPosZ * integratedAltitudeError;
+
+	// 5. Calculate the commanded vertical acceleration [m/s^2]
+	//    by subtracting the acceleration of gravity and dividing by the current altitude component
+	float accel = (ulBar - CONST_GRAVITY) / bz;
+
+	// 6. Constrain the acceleration to our max ascent/descent rates
+	// 7. Multiply by the mass to calculate thrust
+	thrust = mass * CONSTRAIN(accel, maxDescentRate / dt, maxAscentRate / dt);
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
 
