@@ -69,11 +69,21 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
 	// You'll need the arm length parameter L, and the drag/thrust ratio kappa
 
 	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+	
+	// 1. Calculate the perpendicular distance to axes [m].
+	float l = L / sqrtf(2.f);
+	
+	// 2. Calculate the commanded angular acceleration [m/s^2]
+	float t1 = momentCmd.x / l;
+	float t2 = momentCmd.y / l;
+	float t3 = -momentCmd.z / kappa;
+	float t4 = collThrustCmd;
 
-	cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-	cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-	cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-	cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+	// 3. Calculate the commanded thrust on each rotor [N*m]
+	cmd.desiredThrustsN[0] = mass * (t1 + t2 + t3 + t4) / 4.f; // front left
+	cmd.desiredThrustsN[1] = mass * (-t1 + t2 - t3 + t4) / 4.f; // front right
+	cmd.desiredThrustsN[2] = mass * (t1 - t2 - t3 + t4) / 4.; // rear left
+	cmd.desiredThrustsN[3] = mass * (-t1 - t2 + t3 + t4) / 4.f; // rear right
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -97,7 +107,6 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
 	V3F momentCmd;
 
 	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
 
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
@@ -222,13 +231,13 @@ float QuadControl::YawControl(float yawCmd, float yaw)
 	float yawRateCmd = 0;
 	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-	// Calculate the error in yaw [rad]
+	// 1. Calculate the error in yaw [rad]
 	float yawError = yawCmd - yaw;
 
-	// Wrap the error between -PI and PI 
+	// 2. Wrap the error between -PI and PI 
 	float yawError_2_PI = yawCmd > 0 ? fmodf(yawCmd, M_2_PI) : -fmodf(-yawCmd, M_2_PI);
 
-	// Add the proportionally controlled yaw [rad/s]
+	// 3. Add the proportionally controlled yaw [rad/s]
 	yawRateCmd += kpYaw * yawError;
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
