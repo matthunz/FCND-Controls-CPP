@@ -80,10 +80,10 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
 	float t4 = collThrustCmd;
 
 	// 3. Calculate the commanded thrust on each rotor [N*m]
-	cmd.desiredThrustsN[0] = mass * (t1 + t2 + t3 + t4) / 4.f; // front left
-	cmd.desiredThrustsN[1] = mass * (-t1 + t2 - t3 + t4) / 4.f; // front right
-	cmd.desiredThrustsN[2] = mass * (t1 - t2 - t3 + t4) / 4.; // rear left
-	cmd.desiredThrustsN[3] = mass * (-t1 - t2 + t3 + t4) / 4.f; // rear right
+	cmd.desiredThrustsN[0] = (t1 + t2 + t3 + t4) / 4.f; // front left
+	cmd.desiredThrustsN[1] = (-t1 + t2 - t3 + t4) / 4.f; // front right
+	cmd.desiredThrustsN[2] = (t1 - t2 - t3 + t4) / 4.; // rear left
+	cmd.desiredThrustsN[3] = (-t1 - t2 + t3 + t4) / 4.f; // rear right
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -181,7 +181,7 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 	float velError = velZCmd - velZ;
 
 	// 4. Calculate output from the PID control
-	float ulBar = kpPosZ * posError + kpVelZ * velError + KiPosZ * integratedAltitudeError;
+	float ulBar = kpPosZ * posError + kpVelZ * velError + velZ + KiPosZ * integratedAltitudeError + accelZCmd;
 
 	// 5. Calculate the commanded vertical acceleration [m/s^2]
 	//    by subtracting the acceleration of gravity and dividing by the current altitude component
@@ -189,7 +189,7 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
 
 	// 6. Constrain the acceleration to our max ascent/descent rates
 	// 7. Multiply by the mass to calculate thrust
-	thrust = mass * CONSTRAIN(accel, maxDescentRate / dt, maxAscentRate / dt);
+	thrust = -mass * CONSTRAIN(accel, -maxDescentRate / dt, maxAscentRate / dt);
 
 	/////////////////////////////// END STUDENT CODE ////////////////////////////
 
